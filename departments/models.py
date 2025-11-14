@@ -16,6 +16,10 @@ class Department(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
 
+    is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(blank=True, null=True)
+
+
     class Meta:
         verbose_name = "Department"
         verbose_name_plural = "Departments"
@@ -79,6 +83,9 @@ class SystemAdmin(models.Model):
 
     is_active = models.BooleanField(default=True)
     is_blocked = models.BooleanField(default=False)
+
+    is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.full_name} ({self.role})"

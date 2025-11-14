@@ -7,7 +7,7 @@ from users.models import SystemUser
 
 class Message(models.Model):
     """
-    Represents a single message turnaround between a SystemUser and a SystemAdmin/AI.
+    Represents a single message turnaround between a SystemUser and a SystemAdmin/AId.
     One row = one turnaround (user -> admin/AI -> user reply handled separately if needed).
     """
 
@@ -87,11 +87,14 @@ class Message(models.Model):
         ('injection_detected', 'Injection Detected'),
     ]
     stage = models.CharField(max_length=32, choices=STAGE_CHOICES, default='pending')
-    
+
     # ---- Timestamps ----
+
     created_at = models.DateTimeField(auto_now_add=True)
     replied_at = models.DateTimeField(blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True)
+    is_deleted = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         verbose_name = "Message"
