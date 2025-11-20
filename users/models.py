@@ -1,7 +1,7 @@
 import uuid
 from django.db import models
 
-class SystemUser(models.Model):
+class Users(models.Model):
     """
     Represents a unified user identity across all platforms (web, telegram, api, etc).
     """
@@ -29,8 +29,8 @@ class SystemUser(models.Model):
     deleted_at = models.DateTimeField(blank=True, null=True)
 
     class Meta:
-        verbose_name = "System User"
-        verbose_name_plural = "System Users"
+        verbose_name = "User"
+        verbose_name_plural = "Users"
         indexes = [
             models.Index(fields=["user_uuid"]),
             models.Index(fields=["phone_number"]),
@@ -53,7 +53,7 @@ class TelegramAccount(models.Model):
 
     id = models.BigAutoField(primary_key=True)
     system_user = models.ForeignKey(
-        SystemUser,
+        Users,
         on_delete=models.CASCADE,
         related_name="telegram_accounts"
     )
@@ -90,7 +90,7 @@ class WebAccount(models.Model):
     """
     id = models.BigAutoField(primary_key=True)
     system_user = models.ForeignKey(
-        SystemUser,
+        Users,
         on_delete=models.CASCADE,
         related_name="web_accounts"
     )

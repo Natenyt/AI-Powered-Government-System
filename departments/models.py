@@ -36,7 +36,7 @@ import uuid
 from django.db import models
 from departments.models import Department  # assuming departments table exists
 
-class SystemAdmin(models.Model):
+class Admins(models.Model):
     """
     Universal admin record referenced by platform-specific admin accounts.
     """
@@ -98,7 +98,7 @@ class TelegramAdmin(models.Model):
     """
     id = models.BigAutoField(primary_key=True)
     system_admin = models.ForeignKey(
-        SystemAdmin,
+        Admins,
         on_delete=models.CASCADE,
         related_name="telegram_accounts"
     )
@@ -123,7 +123,7 @@ class WebAdmin(models.Model):
     """
     id = models.BigAutoField(primary_key=True)
     system_admin = models.ForeignKey(
-        SystemAdmin,
+        Admins,
         on_delete=models.CASCADE,
         related_name="web_accounts"
     )
