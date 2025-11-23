@@ -16,6 +16,8 @@ class AIResult(models.Model):
         on_delete=models.CASCADE,
         related_name="ai_results"
     )
+    prompt = models.TextField(blank=True, null=True)  # The prompt sent to the AI model
+    ai_response = models.JSONField(blank=True, null=True)  # Raw AI model response
 
     # AI decision & metadata
     severity = models.CharField(max_length=32, blank=True, null=True)  # e.g., low, medium, high
@@ -29,6 +31,7 @@ class AIResult(models.Model):
     nlp_metadata = models.JSONField(blank=True, null=True)  # e.g., detected intent, keywords, embeddings
     isai_chooseto_answer = models.BooleanField(default=False)
     ai_processed_at = models.DateTimeField(default=timezone.now)
+    process_duration_ms = models.IntegerField(null=True, blank=True)  # processing time in milliseconds
     # ----
     
     # Timestamps
