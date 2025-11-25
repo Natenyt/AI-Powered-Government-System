@@ -12,7 +12,7 @@ class Session(models.Model):
     user = models.ForeignKey(
         Users,
         to_field="user_uuid",
-        db_column="user_uuid",
+        db_column="session_user_uuid",
         on_delete=models.CASCADE,
         related_name="sessions"
     )
@@ -21,7 +21,7 @@ class Session(models.Model):
     assigned_admin = models.ForeignKey(
         Admins,
         to_field="admin_uuid",
-        db_column="admin_uuid",
+        db_column="assigned_session_admin_uuid",
         on_delete=models.SET_NULL,
         null=True, blank=True
     )
@@ -67,7 +67,7 @@ class Message(models.Model):
     sender_user = models.ForeignKey(
         Users,
         to_field="user_uuid",
-        db_column="user_uuid",
+        db_column="message_user_uuid",
         on_delete=models.SET_NULL,
         null=True, blank=True
     )
@@ -75,7 +75,7 @@ class Message(models.Model):
     sender_admin = models.ForeignKey(
         Admins,
         to_field="admin_uuid",
-        db_column="admin_uuid",
+        db_column="message_admin_uuid",
         on_delete=models.SET_NULL,
         null=True, blank=True
     )
@@ -105,7 +105,7 @@ class MessageContent(models.Model):
     message = models.ForeignKey(
         Message,
         to_field="message_uuid",
-        db_column="message_uuid",
+        db_column="content_message_uuid",
         on_delete=models.CASCADE,
         related_name="contents"
     )

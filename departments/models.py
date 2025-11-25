@@ -8,7 +8,6 @@ class Department(models.Model):
     id = models.BigAutoField(primary_key=True)
 
     name = models.CharField(max_length=128, unique=True)
-    code = models.CharField(max_length=16, unique=True, blank=True, null=True)  # optional short code
     description = models.TextField(blank=True, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -22,10 +21,6 @@ class Department(models.Model):
     class Meta:
         verbose_name = "Department"
         verbose_name_plural = "Departments"
-        indexes = [
-            models.Index(fields=["department_uuid"]),
-            models.Index(fields=["code"]),
-        ]
 
     def __str__(self):
         return f"{self.name} ({self.code or 'No Code'})"
@@ -57,7 +52,7 @@ class Admins(models.Model):
     assigned_by = models.ForeignKey(
         "self",
         to_field="admin_uuid",
-        db_column="admin_uuid",
+        db_column="assigned_by_admin_uuid",
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
@@ -67,7 +62,7 @@ class Admins(models.Model):
     promoted_by = models.ForeignKey(
         "self",
         to_field="admin_uuid",
-        db_column="admin_uuid",
+        db_column="promoted_admin_uuid",
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
@@ -105,7 +100,7 @@ class TelegramAdmin(models.Model):
     admin = models.ForeignKey(
         Admins,
         to_field="admin_uuid",
-        db_column="admin_uuid",
+        db_column="telegram_admin_uuid",
         on_delete=models.CASCADE,
         related_name="telegram_accounts"
     )
@@ -137,7 +132,7 @@ class WebAdmin(models.Model):
     admin = models.ForeignKey(
         Admins,
         to_field="admin_uuid",
-        db_column="admin_uuid",
+        db_column="web_admin_uuid",
         on_delete=models.CASCADE,
         related_name="web_accounts"
     )
