@@ -826,7 +826,7 @@ async def handle_regular_message(message: Message, state: FSMContext):
         else:
             # Existing user - handle their message normally
             if user:
-                telegram_account = user.telegram_accounts.get(telegram_chat_id=message.from_user.id)
+                telegram_account = await sync_to_async(user.telegram_accounts.get)(telegram_chat_id=message.from_user.id)
                 language = telegram_account.language_preference
                 text = message.text
                 msgs = MESSAGES[language]
@@ -909,7 +909,7 @@ async def finish_message_flow(message: Message, state: FSMContext):
     
     @sync_to_async
     def save_message():
-        from messages.models import Message as UserMessage
+        from user_messages.models import Message as UserMessage
         telegram_account = TelegramAccount.objects.get(telegram_chat_id=telegram_chat_id)
         user = telegram_account.user
         
@@ -949,7 +949,7 @@ async def check_status(message: Message, state: FSMContext, user: Users, languag
     
     @sync_to_async
     def get_active_messages():
-        from messages.models import Message as UserMessage
+        from user_messages.models import Message as UserMessage
         # Filter for messages that are NOT closed
         active_msgs = UserMessage.objects.filter(
             sender=user,
