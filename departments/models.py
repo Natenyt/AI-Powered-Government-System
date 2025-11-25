@@ -32,9 +32,6 @@ class Department(models.Model):
         return f"{self.name} ({self.code or 'No Code'})"
 
 
-import uuid
-from django.db import models
-from departments.models import Department  # assuming departments table exists
 
 class Admins(models.Model):
     """
@@ -97,7 +94,7 @@ class TelegramAdmin(models.Model):
     Telegram-specific admin account linked to SystemAdmin.
     """
     id = models.BigAutoField(primary_key=True)
-    system_admin = models.ForeignKey(
+    admin = models.ForeignKey(
         Admins,
         on_delete=models.CASCADE,
         related_name="telegram_accounts"
@@ -122,7 +119,7 @@ class WebAdmin(models.Model):
     Web-specific admin account linked to SystemAdmin.
     """
     id = models.BigAutoField(primary_key=True)
-    system_admin = models.ForeignKey(
+    admin = models.ForeignKey(
         Admins,
         on_delete=models.CASCADE,
         related_name="web_accounts"

@@ -41,6 +41,10 @@ class RegistrationStates(StatesGroup):
     saving_to_db = State()
 
 
+class MessageStates(StatesGroup):
+    writing = State()
+
+
 # Multilingual messages
 MESSAGES = {
     'uz': {
@@ -80,6 +84,27 @@ MESSAGES = {
             "❌ Xatolik yuz berdi. Iltimos, qayta urinib ko‘ring."
         ),
         'back': '⬅️ Orqaga',
+        # Menu buttons
+        'menu_send_message': '📝 Murojaat yuborish',
+        'menu_check_status': '📊 Holatni tekshirish',
+        'menu_change_language': '🌐 Tilni o‘zgartirish',
+        'menu_website': '🌐 Veb-sayt',
+        'menu_news': '📰 Yangiliklar',
+        # Message flow
+        'msg_instruction': (
+            "📝 Iltimos, xabaringizni yozing.\n\n"
+            "Siz bir nechta xabar yuborishingiz mumkin. "
+            "Yozib bo‘lganingizdan so‘ng '✅ Yakunlash' tugmasini bosing."
+        ),
+        'msg_received': "✅ Xabar qabul qilindi. Yana yozishingiz mumkin yoki yakunlash uchun tugmani bosing.",
+        'msg_finished': "✅ Murojaatingiz qabul qilindi va tegishli bo‘limga yo‘naltirildi.",
+        'msg_cancelled': "❌ Murojaat bekor qilindi.",
+        'btn_finished': '✅ Yakunlash',
+        'btn_cancel': '❌ Bekor qilish',
+        'status_empty': "📭 Sizda faol murojaatlar yo‘q.",
+        'status_header': "📊 Sizning murojaatlaringiz holati:\n\n",
+        'website_link': "Bizning veb-sayt: https://example.com",
+        'no_news': "📰 Hozircha yangiliklar yo‘q.",
     },
 
     'ru': {
@@ -119,6 +144,27 @@ MESSAGES = {
             "❌ Произошла ошибка. Пожалуйста, попробуйте снова."
         ),
         'back': '⬅️ Назад',
+        # Menu buttons
+        'menu_send_message': '📝 Отправить обращение',
+        'menu_check_status': '📊 Проверить статус',
+        'menu_change_language': '🌐 Изменить язык',
+        'menu_website': '🌐 Веб-сайт',
+        'menu_news': '📰 Новости',
+        # Message flow
+        'msg_instruction': (
+            "📝 Пожалуйста, напишите ваше сообщение.\n\n"
+            "Вы можете отправить несколько сообщений. "
+            "После завершения нажмите кнопку '✅ Завершить'."
+        ),
+        'msg_received': "✅ Сообщение принято. Вы можете писать еще или нажать кнопку завершения.",
+        'msg_finished': "✅ Ваше обращение принято и направлено в соответствующий отдел.",
+        'msg_cancelled': "❌ Обращение отменено.",
+        'btn_finished': '✅ Завершить',
+        'btn_cancel': '❌ Отменить',
+        'status_empty': "📭 У вас нет активных обращений.",
+        'status_header': "📊 Статус ваших обращений:\n\n",
+        'website_link': "Наш веб-сайт: https://example.com",
+        'no_news': "📰 Новостей пока нет.",
     },
 
     'en': {
@@ -158,6 +204,27 @@ MESSAGES = {
             "❌ An error occurred. Please try again."
         ),
         'back': '⬅️ Back',
+        # Menu buttons
+        'menu_send_message': '📝 Send Message',
+        'menu_check_status': '📊 Check Status',
+        'menu_change_language': '🌐 Change Language',
+        'menu_website': '🌐 Website',
+        'menu_news': '📰 News',
+        # Message flow
+        'msg_instruction': (
+            "📝 Please write your message.\n\n"
+            "You can send multiple messages. "
+            "Press '✅ Finished' when you are done."
+        ),
+        'msg_received': "✅ Message received. You can write more or press finished.",
+        'msg_finished': "✅ Your message has been received and routed to the appropriate department.",
+        'msg_cancelled': "❌ Message cancelled.",
+        'btn_finished': '✅ Finished',
+        'btn_cancel': '❌ Cancel',
+        'status_empty': "📭 You have no active messages.",
+        'status_header': "📊 Your message status:\n\n",
+        'website_link': "Our website: https://example.com",
+        'no_news': "📰 No news at the moment.",
     }
 }
 
@@ -272,6 +339,34 @@ async def get_neighborhood_keyboard(language: str = 'uz'):
     return keyboard
 
 
+def get_main_menu_keyboard(language: str = 'uz'):
+    """Create main menu keyboard."""
+    msgs = MESSAGES[language]
+    keyboard = ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text=msgs['menu_send_message']), KeyboardButton(text=msgs['menu_check_status'])],
+            [KeyboardButton(text=msgs['menu_change_language'])],
+            [KeyboardButton(text=msgs['menu_website']), KeyboardButton(text=msgs['menu_news'])],
+        ],
+        resize_keyboard=True,
+        one_time_keyboard=False
+    )
+    return keyboard
+
+
+def get_message_flow_keyboard(language: str = 'uz'):
+    """Create keyboard for message writing flow."""
+    msgs = MESSAGES[language]
+    keyboard = ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text=msgs['btn_finished']), KeyboardButton(text=msgs['btn_cancel'])],
+        ],
+        resize_keyboard=True,
+        one_time_keyboard=False
+    )
+    return keyboard
+
+
 async def universal_pre_check(message: Message, state: FSMContext) -> tuple[bool, Optional[Users], Optional[Admins]]:
     """
     Universal pre-check: Look up user in Users and Admins tables.
@@ -282,11 +377,11 @@ async def universal_pre_check(message: Message, state: FSMContext) -> tuple[bool
     @sync_to_async
     def check_telegram_account():
         try:
-            telegram_account = TelegramAccount.objects.select_related('system_user').get(
+            telegram_account = TelegramAccount.objects.select_related('user').get(
                 telegram_chat_id=telegram_chat_id,
-                system_user__is_deleted=False
+                user__is_deleted=False
             )
-            user = telegram_account.system_user
+            user = telegram_account.user
             
             # Update last interaction
             telegram_account.last_interaction = timezone.now()
@@ -301,10 +396,10 @@ async def universal_pre_check(message: Message, state: FSMContext) -> tuple[bool
     @sync_to_async
     def check_telegram_admin():
         try:
-            telegram_admin = TelegramAdmin.objects.select_related('system_admin').get(
+            telegram_admin = TelegramAdmin.objects.select_related('admin').get(
                 telegram_chat_id=telegram_chat_id
             )
-            admin = telegram_admin.system_admin
+            admin = telegram_admin.admin
             
             # Update last interaction
             telegram_admin.last_interaction = timezone.now()
@@ -337,10 +432,14 @@ async def cmd_start(message: Message, state: FSMContext):
     if not is_new:
         # User or admin exists - show main menu
         if user:
+            # Get user's language preference
+            telegram_account = user.telegram_accounts.get(telegram_chat_id=message.from_user.id)
+            language = telegram_account.language_preference
+            
             await message.answer(
                 f"Assalomu alaykum, {user.full_name or 'foydalanuvchi'}!\n\n"
                 "Sizga qanday yordam bera olaman?",
-                reply_markup=ReplyKeyboardRemove()
+                reply_markup=get_main_menu_keyboard(language)
             )
         elif admin:
             await message.answer(
@@ -389,6 +488,30 @@ async def process_language_selection(message: Message, state: FSMContext):
     # Store language in FSM
     await state.update_data(language=language)
     
+    # Check if this is a language change for existing user
+    data = await state.get_data()
+    if data.get('is_changing_language'):
+        # Update DB
+        telegram_user_id = message.from_user.id
+        
+        @sync_to_async
+        def update_language():
+            telegram_account = TelegramAccount.objects.get(telegram_chat_id=telegram_user_id)
+            telegram_account.language_preference = language
+            telegram_account.language_code = language
+            telegram_account.save()
+            return telegram_account.user
+            
+        user = await update_language()
+        
+        # Return to main menu
+        await message.answer(
+            MESSAGES[language]['success'], # Or a specific "Language changed" message
+            reply_markup=get_main_menu_keyboard(language)
+        )
+        await state.clear()
+        return
+
     # Store telegram user info
     await state.update_data(
         telegram_user_id=message.from_user.id,
@@ -635,7 +758,7 @@ async def save_user_to_database(message: Message, state: FSMContext):
                 telegram_account, created = TelegramAccount.objects.get_or_create(
                     telegram_chat_id=telegram_chat_id,
                     defaults={
-                        'system_user': user,
+                        'user': user,
                         'username': data.get('username'),
                         'full_name': f"{data.get('first_name', '')} {data.get('last_name', '')}".strip(),
                         'phone_number': phone_number,
@@ -667,7 +790,11 @@ async def save_user_to_database(message: Message, state: FSMContext):
         await save_user()
         
         # Success message
-        await message.answer(MESSAGES[language]['success'])
+        # Success message
+        await message.answer(
+            MESSAGES[language]['success'],
+            reply_markup=get_main_menu_keyboard(language)
+        )
         
         # Clear FSM state
         await state.clear()
@@ -698,11 +825,166 @@ async def handle_regular_message(message: Message, state: FSMContext):
             await state.set_state(RegistrationStates.choose_language)
         else:
             # Existing user - handle their message normally
-            # TODO: Implement main menu handlers
-            await message.answer("Sizga qanday yordam bera olaman?")
+            if user:
+                telegram_account = user.telegram_accounts.get(telegram_chat_id=message.from_user.id)
+                language = telegram_account.language_preference
+                text = message.text
+                msgs = MESSAGES[language]
+                
+                # Route based on button text
+                if text == msgs['menu_send_message']:
+                    await start_message_flow(message, state, language)
+                elif text == msgs['menu_check_status']:
+                    await check_status(message, state, user, language)
+                elif text == msgs['menu_change_language']:
+                    await start_change_language(message, state, language)
+                elif text == msgs['menu_website']:
+                    await message.answer(msgs['website_link'])
+                elif text == msgs['menu_news']:
+                    await message.answer(msgs['no_news'])
+                else:
+                    # Unknown command, show menu again
+                    await message.answer(
+                        "Sizga qanday yordam bera olaman?",
+                        reply_markup=get_main_menu_keyboard(language)
+                    )
+            elif admin:
+                # Admin logic (placeholder)
+                await message.answer("Admin panel")
     else:
         # In a state but message doesn't match - ignore or handle error
         pass
+
+
+async def start_message_flow(message: Message, state: FSMContext, language: str):
+    """Start the message sending flow."""
+    await message.answer(
+        MESSAGES[language]['msg_instruction'],
+        reply_markup=get_message_flow_keyboard(language)
+    )
+    await state.set_state(MessageStates.writing)
+    # Initialize list of messages
+    await state.update_data(messages=[], language=language)
+
+
+async def process_message_writing(message: Message, state: FSMContext):
+    """Handle messages being written by user."""
+    data = await state.get_data()
+    language = data.get('language', 'uz')
+    msgs = MESSAGES[language]
+    text = message.text
+    
+    # Check for control buttons
+    if text == msgs['btn_finished']:
+        await finish_message_flow(message, state)
+        return
+    elif text == msgs['btn_cancel']:
+        await cancel_message_flow(message, state)
+        return
+    
+    # Append message to list
+    messages = data.get('messages', [])
+    messages.append(text)
+    await state.update_data(messages=messages)
+    
+    await message.answer(msgs['msg_received'])
+
+
+async def finish_message_flow(message: Message, state: FSMContext):
+    """Save messages and finish flow."""
+    data = await state.get_data()
+    language = data.get('language', 'uz')
+    messages_list = data.get('messages', [])
+    
+    if not messages_list:
+        await message.answer(MESSAGES[language]['msg_cancelled'], reply_markup=get_main_menu_keyboard(language))
+        await state.clear()
+        return
+
+    # Combine messages
+    full_content = "\n\n".join(messages_list)
+    
+    # Save to DB
+    telegram_chat_id = message.from_user.id
+    
+    @sync_to_async
+    def save_message():
+        from messages.models import Message as UserMessage
+        telegram_account = TelegramAccount.objects.get(telegram_chat_id=telegram_chat_id)
+        user = telegram_account.user
+        
+        UserMessage.objects.create(
+            sender=user,
+            sender_platform='telegram',
+            receiver_type='admin', # Default to admin for now
+            message_type='text',
+            message_content=full_content,
+            stage='pending'
+        )
+    
+    await save_message()
+    
+    await message.answer(
+        MESSAGES[language]['msg_finished'],
+        reply_markup=get_main_menu_keyboard(language)
+    )
+    await state.clear()
+
+
+async def cancel_message_flow(message: Message, state: FSMContext):
+    """Cancel message flow."""
+    data = await state.get_data()
+    language = data.get('language', 'uz')
+    
+    await message.answer(
+        MESSAGES[language]['msg_cancelled'],
+        reply_markup=get_main_menu_keyboard(language)
+    )
+    await state.clear()
+
+
+async def check_status(message: Message, state: FSMContext, user: Users, language: str):
+    """Check status of active messages."""
+    msgs = MESSAGES[language]
+    
+    @sync_to_async
+    def get_active_messages():
+        from messages.models import Message as UserMessage
+        # Filter for messages that are NOT closed
+        active_msgs = UserMessage.objects.filter(
+            sender=user,
+        ).exclude(stage='closed').order_by('-created_at')[:5]
+        return list(active_msgs)
+    
+    active_messages = await get_active_messages()
+    
+    if not active_messages:
+        await message.answer(msgs['status_empty'])
+        return
+    
+    response = msgs['status_header']
+    for msg in active_messages:
+        # Simple formatting: Date - Stage
+        date_str = msg.created_at.strftime("%Y-%m-%d %H:%M")
+        response += f"📅 {date_str}\nℹ️ {msg.get_stage_display()}\n\n"
+        
+    await message.answer(response)
+
+
+async def start_change_language(message: Message, state: FSMContext, current_language: str):
+    """Start language change flow."""
+    # Re-use registration language selection logic but with a different state or flag?
+    # Actually, we can just show the language keyboard and set a state to handle it.
+    # But we need to update the user's preference in DB.
+    
+    await message.answer(
+        MESSAGES[current_language]['greeting'].split('\n')[-1], # Just "Please select language" part
+        reply_markup=get_language_keyboard()
+    )
+    await state.set_state(RegistrationStates.choose_language)
+    # We can use a flag in state to know if this is a change or new registration
+    await state.update_data(is_changing_language=True)
+
 
 
 def setup_bot(token: str):
@@ -720,6 +1002,10 @@ def setup_bot(token: str):
     dp.message.register(process_phone, RegistrationStates.ask_phone)
     dp.message.register(process_neighborhood, RegistrationStates.ask_neighborhood)
     dp.message.register(process_location, RegistrationStates.ask_full_location)
+    
+    # Message flow handlers
+    dp.message.register(process_message_writing, MessageStates.writing)
+    
     dp.message.register(handle_regular_message)
     
     return bot, dp

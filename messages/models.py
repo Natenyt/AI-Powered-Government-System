@@ -1,8 +1,8 @@
 import uuid
 from django.db import models
 from django.utils import timezone
-from departments.models import Department, SystemAdmin
-from users.models import SystemUser
+from departments.models import Department, Admins
+from users.models import Users
 
 
 class Message(models.Model):
@@ -17,7 +17,7 @@ class Message(models.Model):
 
     # ---- Sender info ----
     sender = models.ForeignKey(
-        SystemUser,
+        Users,
         on_delete=models.CASCADE,
         related_name="sent_messages"
     )
@@ -34,7 +34,7 @@ class Message(models.Model):
     ]
     receiver_type = models.CharField(max_length=16, choices=RECEIVER_TYPE_CHOICES)
     receiver_admin = models.ForeignKey(
-        SystemAdmin,
+        Admins,
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
@@ -61,7 +61,7 @@ class Message(models.Model):
     # ---- Reply info ----
     replied = models.BooleanField(default=False)
     who_replied = models.ForeignKey(
-        SystemAdmin,
+        Admins,
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
@@ -109,7 +109,7 @@ class Message(models.Model):
     def __str__(self):
         return f"Message from {self.sender.full_name or self.sender.user_uuid} to {self.receiver_type} at {self.created_at}"
 
-    def mark_replied(self, admin: SystemAdmin = None, content: str = '', platform: str = 'web', file_url: str = None):
+    def mark_replied(self, admin: Admins = None, content: str = '', platform: str = 'web', file_url: str = None):
         """
         Marks the message as replied.
         """

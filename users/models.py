@@ -52,7 +52,7 @@ class TelegramAccount(models.Model):
     ]
 
     id = models.BigAutoField(primary_key=True)
-    system_user = models.ForeignKey(
+    user = models.ForeignKey(
         Users,
         on_delete=models.CASCADE,
         related_name="telegram_accounts"
@@ -89,7 +89,7 @@ class WebAccount(models.Model):
     Supports both local (password) and OAuth (Google) sign-ins.
     """
     id = models.BigAutoField(primary_key=True)
-    system_user = models.ForeignKey(
+    user = models.ForeignKey(
         Users,
         on_delete=models.CASCADE,
         related_name="web_accounts"

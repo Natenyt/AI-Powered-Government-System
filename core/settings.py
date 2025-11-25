@@ -84,11 +84,11 @@ WSGI_APPLICATION = 'core.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'gov_db',
-        'USER': 'root',
-        'PASSWORD': '971412811',
-        'HOST': 'localhost',  # Or your MySQL server IP
-        'PORT': '3306',       # Default MySQL port
+        'NAME': os.getenv('DB_NAME', 'gov_db'),
+        'USER': os.getenv('DB_USER', 'root'),
+        'PASSWORD': os.getenv('DB_PASSWORD', ''),
+        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'PORT': os.getenv('DB_PORT', '3306'),
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
         },
