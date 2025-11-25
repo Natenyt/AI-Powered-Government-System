@@ -909,7 +909,7 @@ async def finish_message_flow(message: Message, state: FSMContext):
     
     @sync_to_async
     def save_message():
-        from user_messages.models import Message as UserMessage
+        from messages_core.models import Message as UserMessage
         telegram_account = TelegramAccount.objects.get(telegram_chat_id=telegram_chat_id)
         user = telegram_account.user
         
@@ -949,7 +949,7 @@ async def check_status(message: Message, state: FSMContext, user: Users, languag
     
     @sync_to_async
     def get_active_messages():
-        from user_messages.models import Message as UserMessage
+        from messages_core.models import Message as UserMessage
         # Filter for messages that are NOT closed
         active_msgs = UserMessage.objects.filter(
             sender=user,

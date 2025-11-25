@@ -6,17 +6,15 @@ class Users(models.Model):
     Represents a unified user identity across all platforms (web, telegram, api, etc).
     """
     id = models.BigAutoField(primary_key=True)
-    user_uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    user_uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False, db_index=True)
     
     full_name = models.CharField(max_length=128, blank=True, null=True)
     phone_number = models.CharField(max_length=32, blank=True, null=True, unique=True)
 
     verified = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True)
     is_blocked = models.BooleanField(default=False)
     
     # Meta data
-    government_code = models.CharField(max_length=10, blank=True, null=True)
     notes = models.TextField(blank=True, null=True)
 
     web_last_login = models.DateTimeField(blank=True, null=True)
@@ -54,6 +52,8 @@ class TelegramAccount(models.Model):
     id = models.BigAutoField(primary_key=True)
     user = models.ForeignKey(
         Users,
+        to_field="user_uuid",
+        db_column="user_uuid",
         on_delete=models.CASCADE,
         related_name="telegram_accounts"
     )
@@ -73,7 +73,7 @@ class TelegramAccount(models.Model):
     )
     location = models.CharField(max_length=256, blank=True, null=True)
 
-    joined_at = models.DateTimeField(auto_now_add=True)
+    registered_at = models.DateTimeField(auto_now_add=True)
     last_interaction = models.DateTimeField(blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -91,6 +91,8 @@ class WebAccount(models.Model):
     id = models.BigAutoField(primary_key=True)
     user = models.ForeignKey(
         Users,
+        to_field="user_uuid",
+        db_column="user_uuid",
         on_delete=models.CASCADE,
         related_name="web_accounts"
     )

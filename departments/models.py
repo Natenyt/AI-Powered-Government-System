@@ -6,7 +6,6 @@ class Department(models.Model):
     Represents a department within the system.
     """
     id = models.BigAutoField(primary_key=True)
-    department_uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
 
     name = models.CharField(max_length=128, unique=True)
     code = models.CharField(max_length=16, unique=True, blank=True, null=True)  # optional short code
@@ -57,6 +56,8 @@ class Admins(models.Model):
     permissions = models.JSONField(blank=True, null=True)  # optional granular permissions
     assigned_by = models.ForeignKey(
         "self",
+        to_field="admin_uuid",
+        db_column="admin_uuid",
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
@@ -65,6 +66,8 @@ class Admins(models.Model):
     assigned_date = models.DateTimeField(blank=True, null=True)
     promoted_by = models.ForeignKey(
         "self",
+        to_field="admin_uuid",
+        db_column="admin_uuid",
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
@@ -78,7 +81,6 @@ class Admins(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    is_active = models.BooleanField(default=True)
     is_blocked = models.BooleanField(default=False)
 
     is_deleted = models.BooleanField(default=False)
@@ -93,9 +95,17 @@ class TelegramAdmin(models.Model):
     """
     Telegram-specific admin account linked to SystemAdmin.
     """
+    LANGUAGE_CHOICES = [
+        ('uz', 'Uzbek'),
+        ('ru', 'Russian'),
+        ('en', 'English'),
+    ]
+    
     id = models.BigAutoField(primary_key=True)
     admin = models.ForeignKey(
         Admins,
+        to_field="admin_uuid",
+        db_column="admin_uuid",
         on_delete=models.CASCADE,
         related_name="telegram_accounts"
     )
@@ -104,8 +114,13 @@ class TelegramAdmin(models.Model):
     telegram_chat_id = models.BigIntegerField(unique=True, db_index=True)
     username = models.CharField(max_length=128, blank=True, null=True)
     language_code = models.CharField(max_length=8, blank=True, null=True)
+    language_preference = models.CharField(
+        max_length=2,
+        choices=LANGUAGE_CHOICES,
+        default='uz'
+    )
 
-    joined_at = models.DateTimeField(auto_now_add=True)
+    registered_at = models.DateTimeField(auto_now_add=True)
     last_interaction = models.DateTimeField(blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -121,6 +136,8 @@ class WebAdmin(models.Model):
     id = models.BigAutoField(primary_key=True)
     admin = models.ForeignKey(
         Admins,
+        to_field="admin_uuid",
+        db_column="admin_uuid",
         on_delete=models.CASCADE,
         related_name="web_accounts"
     )

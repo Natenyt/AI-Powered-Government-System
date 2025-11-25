@@ -1,7 +1,7 @@
 
 from django.db import models
 from django.utils import timezone
-from user_messages.models import Message
+from messages_core.models import Message
 
 
 class AIResult(models.Model):
