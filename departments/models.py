@@ -52,7 +52,7 @@ class Admins(models.Model):
     assigned_by = models.ForeignKey(
         "self",
         to_field="admin_uuid",
-        db_column="assigned_by_admin_uuid",
+        db_column="assigned_by",
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
@@ -62,7 +62,7 @@ class Admins(models.Model):
     promoted_by = models.ForeignKey(
         "self",
         to_field="admin_uuid",
-        db_column="promoted_admin_uuid",
+        db_column="promoted_by",
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
@@ -100,7 +100,7 @@ class TelegramAdmin(models.Model):
     admin = models.ForeignKey(
         Admins,
         to_field="admin_uuid",
-        db_column="telegram_admin_uuid",
+        db_column="admin_uuid",
         on_delete=models.CASCADE,
         related_name="telegram_accounts"
     )
@@ -132,7 +132,7 @@ class WebAdmin(models.Model):
     admin = models.ForeignKey(
         Admins,
         to_field="admin_uuid",
-        db_column="web_admin_uuid",
+        db_column="admin_uuid",
         on_delete=models.CASCADE,
         related_name="web_accounts"
     )

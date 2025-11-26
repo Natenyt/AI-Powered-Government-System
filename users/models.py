@@ -53,7 +53,7 @@ class TelegramAccount(models.Model):
     user = models.ForeignKey(
         Users,
         to_field="user_uuid",
-        db_column="telegram_user_uuid",
+        db_column="user_uuid",
         on_delete=models.CASCADE,
         related_name="telegram_accounts"
     )
@@ -92,7 +92,7 @@ class WebAccount(models.Model):
     user = models.ForeignKey(
         Users,
         to_field="user_uuid",
-        db_column="web_user_uuid",
+        db_column="user_uuid",
         on_delete=models.CASCADE,
         related_name="web_accounts"
     )

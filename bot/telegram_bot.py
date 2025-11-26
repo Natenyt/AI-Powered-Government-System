@@ -433,7 +433,7 @@ async def cmd_start(message: Message, state: FSMContext):
         # User or admin exists - show main menu
         if user:
             # Get user's language preference
-            telegram_account = user.telegram_accounts.get(telegram_chat_id=message.from_user.id)
+            telegram_account = await sync_to_async(user.telegram_accounts.get)(telegram_chat_id=message.from_user.id)
             language = telegram_account.language_preference
             
             await message.answer(
@@ -747,7 +747,6 @@ async def save_user_to_database(message: Message, state: FSMContext):
                     user = Users.objects.create(
                         full_name=full_name,
                         phone_number=phone_number,
-                        is_active=True,
                         verified=False,
                     )
                 
@@ -909,17 +908,31 @@ async def finish_message_flow(message: Message, state: FSMContext):
     
     @sync_to_async
     def save_message():
-        from messages_core.models import Message as UserMessage
+        from messages_core.models import Session, Message, MessageContent
         telegram_account = TelegramAccount.objects.get(telegram_chat_id=telegram_chat_id)
         user = telegram_account.user
         
-        UserMessage.objects.create(
-            sender=user,
+        # Find open session or create new one
+        session = Session.objects.filter(user=user, status='open').first()
+        if not session:
+            session = Session.objects.create(
+                user=user,
+                status='open'
+            )
+        
+        # Create Message
+        message_obj = Message.objects.create(
+            session=session,
+            sender_type='user',
+            sender_user=user,
             sender_platform='telegram',
-            receiver_type='admin', # Default to admin for now
-            message_type='text',
-            message_content=full_content,
-            stage='pending'
+        )
+        
+        # Create MessageContent
+        MessageContent.objects.create(
+            message=message_obj,
+            content_type='text',
+            text=full_content
         )
     
     await save_message()
@@ -949,12 +962,13 @@ async def check_status(message: Message, state: FSMContext, user: Users, languag
     
     @sync_to_async
     def get_active_messages():
-        from messages_core.models import Message as UserMessage
-        # Filter for messages that are NOT closed
-        active_msgs = UserMessage.objects.filter(
-            sender=user,
-        ).exclude(stage='closed').order_by('-created_at')[:5]
-        return list(active_msgs)
+        from messages_core.models import Session
+        # Filter for sessions that are 'open'
+        active_sessions = Session.objects.filter(
+            user=user,
+            status='open'
+        ).order_by('-created_at')[:5]
+        return list(active_sessions)
     
     active_messages = await get_active_messages()
     
@@ -963,10 +977,17 @@ async def check_status(message: Message, state: FSMContext, user: Users, languag
         return
     
     response = msgs['status_header']
-    for msg in active_messages:
-        # Simple formatting: Date - Stage
-        date_str = msg.created_at.strftime("%Y-%m-%d %H:%M")
-        response += f"📅 {date_str}\nℹ️ {msg.get_stage_display()}\n\n"
+    for session in active_messages:
+        # Simple formatting: Date - Status
+        date_str = session.created_at.strftime("%Y-%m-%d %H:%M")
+        # Translate status if needed, or just show raw
+        status_display = "Ochiq" if session.status == 'open' else "Yopiq" # Simple Uzbek translation
+        if language == 'ru':
+            status_display = "Открыт" if session.status == 'open' else "Закрыт"
+        elif language == 'en':
+            status_display = "Open" if session.status == 'open' else "Closed"
+            
+        response += f"📅 {date_str}\nℹ️ {status_display}\n\n"
         
     await message.answer(response)
 

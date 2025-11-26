@@ -12,7 +12,7 @@ class Session(models.Model):
     user = models.ForeignKey(
         Users,
         to_field="user_uuid",
-        db_column="session_user_uuid",
+        db_column="user_uuid",
         on_delete=models.CASCADE,
         related_name="sessions"
     )
@@ -21,7 +21,7 @@ class Session(models.Model):
     assigned_admin = models.ForeignKey(
         Admins,
         to_field="admin_uuid",
-        db_column="assigned_session_admin_uuid",
+        db_column="assigned_admin_uuid",
         on_delete=models.SET_NULL,
         null=True, blank=True
     )
@@ -67,7 +67,7 @@ class Message(models.Model):
     sender_user = models.ForeignKey(
         Users,
         to_field="user_uuid",
-        db_column="message_user_uuid",
+        db_column="sender_user",
         on_delete=models.SET_NULL,
         null=True, blank=True
     )
@@ -75,7 +75,7 @@ class Message(models.Model):
     sender_admin = models.ForeignKey(
         Admins,
         to_field="admin_uuid",
-        db_column="message_admin_uuid",
+        db_column="sender_admin",
         on_delete=models.SET_NULL,
         null=True, blank=True
     )
@@ -88,7 +88,6 @@ class Message(models.Model):
         ],
         default='web'
     )
-    text = models.TextField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     delivered_at = models.DateTimeField(null=True, blank=True)
@@ -105,7 +104,7 @@ class MessageContent(models.Model):
     message = models.ForeignKey(
         Message,
         to_field="message_uuid",
-        db_column="content_message_uuid",
+        db_column="message_uuid",
         on_delete=models.CASCADE,
         related_name="contents"
     )
