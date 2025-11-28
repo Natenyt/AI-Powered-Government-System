@@ -6,8 +6,10 @@ class Department(models.Model):
     Represents a department within the system.
     """
     id = models.BigAutoField(primary_key=True)
-
-    name = models.CharField(max_length=128, unique=True)
+ 
+    name_uz = models.CharField(max_length=128, null=True, blank=True)
+    name_ru = models.CharField(max_length=128, null=True, blank=True)
+    name_en = models.CharField(max_length=128, null=True, blank=True)
     description = models.TextField(blank=True, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
