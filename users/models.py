@@ -46,7 +46,6 @@ class TelegramAccount(models.Model):
     LANGUAGE_CHOICES = [
         ('uz', 'Uzbek'),
         ('ru', 'Russian'),
-        ('en', 'English'),
     ]
 
     id = models.BigAutoField(primary_key=True)

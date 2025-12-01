@@ -29,7 +29,6 @@ class AuditLog(models.Model):
     actor_metadata = models.JSONField(blank=True, null=True)
 
     # Organizational context
-    organization_code = models.CharField(max_length=64, blank=True, null=True)
     department_id = models.IntegerField(blank=True, null=True)
 
     # Target object (recommended)
@@ -49,7 +48,6 @@ class AuditLog(models.Model):
     geo_info = models.JSONField(blank=True, null=True)
     user_agent = models.CharField(max_length=512, blank=True, null=True)
     request_id = models.UUIDField(blank=True, null=True)
-    correlation_id = models.UUIDField(blank=True, null=True)
     session_id = models.UUIDField(blank=True, null=True)
 
     # Tamper-proof chain fields

@@ -11,15 +11,21 @@ from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton, CallbackQuery, ReplyKeyboardRemove, Contact
-
+from aiogram.types import Message, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove, Contact
+from asgiref.sync import sync_to_async
 from django.utils import timezone
 from django.db import transaction
-from asgiref.sync import sync_to_async
+import django
+
+# Setup Django
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'MultiGov_version2.settings')
+django.setup()
 
 from departments.models import Admins, TelegramAdmin
-from users.models import Users, TelegramAccount
 from core_support.models import Neighborhood
+from users.models import Users, TelegramAccount
+from core_support.logic import precheck
+from ai.logic import process_message
 
 
 # Configure logging
@@ -314,8 +320,8 @@ async def get_neighborhood_keyboard(language: str = 'uz'):
             # Use name based on language
             if language == 'ru' and neighborhood.name_ru:
                 name = neighborhood.name_ru
-            elif language == 'en' and neighborhood.name_en:
-                name = neighborhood.name_en
+            # elif language == 'en' and neighborhood.name_en:
+            #     name = neighborhood.name_en
             else:
                 name = neighborhood.name_uz
             
@@ -654,15 +660,6 @@ async def process_neighborhood(message: Message, state: FSMContext):
                 if neighborhood:
                     return neighborhood
             
-            # Try name_en if language is English
-            if language == 'en':
-                neighborhood = Neighborhood.objects.filter(
-                    is_active=True,
-                    name_en__iexact=selected_name
-                ).first()
-                if neighborhood:
-                    return neighborhood
-            
             return None
         except Exception:
             return None
@@ -934,8 +931,17 @@ async def finish_message_flow(message: Message, state: FSMContext):
             content_type='text',
             text=full_content
         )
+        return session.session_uuid, message_obj.message_uuid
     
-    await save_message()
+    session_uuid, message_uuid = await save_message()
+    
+    # Precheck and AI Routing
+    # Check if department is assigned
+    is_assigned = await sync_to_async(precheck)(session_uuid, {"message_uuid": message_uuid})
+    
+    if not is_assigned:
+        # Call AI Microservice logic
+        await sync_to_async(process_message)(message_uuid)
     
     await message.answer(
         MESSAGES[language]['msg_finished'],

@@ -7,10 +7,12 @@ class Department(models.Model):
     """
     id = models.BigAutoField(primary_key=True)
  
-    name_uz = models.CharField(max_length=128, null=True, blank=True)
-    name_ru = models.CharField(max_length=128, null=True, blank=True)
-    name_en = models.CharField(max_length=128, null=True, blank=True)
-    description = models.TextField(blank=True, null=True)
+    name_uz = models.CharField(max_length=500, null=True, blank=True)
+    name_ru = models.CharField(max_length=500, null=True, blank=True)
+    description_uz = models.TextField(blank=True, null=True)
+    description_ru = models.TextField(blank=True, null=True)
+    keywords_uz = models.CharField(max_length=500, null=True, blank=True)
+    keywords_ru = models.CharField(max_length=500, null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
